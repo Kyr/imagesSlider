@@ -1,0 +1,16 @@
+{
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular-material": "~0.10.0"
+  },
+  "name": "univisionImages",
+  "version": "0.0.0",
+  "author": "kir",
+  "private": true
+}

@@ -59,20 +59,20 @@ app.controller('appCtrl', [
 		$scope.currentPage = 1;
 		//$scope.images = [];
 
-		$scope.$watchCollection('images', function () {
 
-			$scope.sliderSet = $filter('limitTo')($scope.images, IMAGE_AMOUNT, ($scope.currentPage - 1) * IMAGE_AMOUNT);
-		});
+		$scope.$watchCollection('images', function (images) {
 
-		$scope.$watchGroup(['images', 'currentPage'], function () {
-
-			$scope.sliderSet = $filter('limitTo')($scope.images, IMAGE_AMOUNT, ($scope.currentPage - 1) * IMAGE_AMOUNT);
+			console.log(images);
+			if (!images || images.length == 0) {
+				$scope.placeholders = '0'.repeat(IMAGE_AMOUNT).split('');
+			} else if (images.length % IMAGE_AMOUNT == 0) {
+				$scope.placeholders = [];
+			} else {
+				$scope.placeholders = '0'.repeat(IMAGE_AMOUNT - images.length % IMAGE_AMOUNT).split('');
+			}
 		});
 
 		$scope.image_amount = IMAGE_AMOUNT;
-
-
-		$scope.sliderSize = '0'.repeat(IMAGE_AMOUNT).split('');
 
 		User.login({login: 'login', password: 'password'}, function (result) {
 			$scope.images = result.images;
@@ -130,7 +130,7 @@ app.directive('uploadImage', [
 					ImageService.upload({userId: $scope.user.id, payload: payload}, function (response) {
 						console.log('upload success, response: %o', response);
 						$scope.images.push(response);
-						$scope.$apply();
+						//$scope.$apply();
 					});
 
 				});

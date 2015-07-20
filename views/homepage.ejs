@@ -3,18 +3,22 @@
 </md-toolbar>
 <div flex layout="column">
 	<div flex layout="row">
-		{{currentPage }}
-		<!--{{ sliderSet = ( images | limitTo:image_amount:((currentPage - 1) * image_amount) ) }}-->
 		<div flex="5">
 			<button ng-disabled="currentPage == 1" ng-click="currentPage = currentPage - 1"> <<</button>
 		</div>
-		<div flex="30" ng-repeat="i in sliderSize track by $index">
 
-			<img class="slide" ng-if="sliderSet[$index]" ng-src="{{ '/image/' + sliderSet[$index].fileName }}" alt="{{
-			::sliderSet[$index].caption }}"/>
+		<div flex="30" ng-repeat="image in images track by $index"
+		     ng-show="$index >= (currentPage-1) * image_amount && $index < currentPage * image_amount">
 
-			<img class="slide" ng-if="!sliderSet[$index]" src="images/placeholder.png" alt="Image placeholder">
+			<img class="slide" ng-if="image" ng-src="{{ '/image/' + image.fileName }}" alt="{{ ::image.caption }}"/>
 		</div>
+
+		<div flex="30" ng-repeat="placeholder in placeholders track by $index"
+		     ng-if="images.length <= currentPage * image_amount">
+			<img class="slide" src="images/placeholder.png" alt="Image placeholder">
+		</div>
+
+
 		<div flex="5">
 			<button ng-disabled="images.length <= currentPage * image_amount" ng-click="currentPage = currentPage + 1"> >>
 			</button>

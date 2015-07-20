@@ -60,21 +60,11 @@ app.factory('ImageService', ['$resource', function ($resource) {
 	})
 }]);
 
-//app.config(['$provide', '$resource', function ($provide, $resource) {
-//	$resource('user/login', {login: 'user', password: 'password'}, function (response) {
-//		$provide.value('User', response)
-//	})
-//}]);
-
-
 app.controller('appCtrl', [
 	'$scope', '$filter', '$timeout', 'IMAGE_AMOUNT', 'User',
 	function ($scope, $filter, $timeout, IMAGE_AMOUNT, User) {
-		console.log('appCtrl loaded');
-
-		//var images = User.login('/images/:id', {id: '@id'}, null);
 		$scope.currentPage = 1;
-		//$scope.images = [];
+		$scope.image_amount = IMAGE_AMOUNT;
 
 		$scope.$on('slider:changePage', function () {
 			if ($scope.currentPage * IMAGE_AMOUNT >= $scope.images.length) {
@@ -83,7 +73,6 @@ app.controller('appCtrl', [
 				$scope.currentPage++;
 			}
 			$scope.$apply();
-			//console.log($scope.currentPage);
 		});
 
 		$scope.$watchCollection('images', function (images) {
@@ -97,7 +86,7 @@ app.controller('appCtrl', [
 			}
 		});
 
-		$scope.image_amount = IMAGE_AMOUNT;
+
 
 		User.login({login: 'login', password: 'password'}, function (result) {
 			$scope.images = result.images;
@@ -114,29 +103,28 @@ app.directive('imageListItem', [
 	'$timeout', 'ImageService',
 	function ($timeout, ImageService) {
 		return {
-			template: '<li><div ng-transclude="true"></div></li>',
+			//template: '<li><md-whiteframe class="md-whiteframe-z2" layout layout-align="center center"><div ng-transclude="true"></div></md-whiteframe></li>',
+			templateUrl: 'partials/image-list-item.html',
 			transclude: true,
 			replace: true,
-			link: function ($scope, element, attributes) {
-				var deleteButton = angular.element('<button>X</button>').addClass('remove-button');
-				var icon = angular.element('<md-icon>').attr('md-svg-icon', 'md-close');
-				deleteButton.append(icon);
-
-				deleteButton.on('click', function (event) {
-					console.log('delete click, image: %o, index: %s', $scope.image, $scope.$index);
+			controller: ['$scope', 'ImageService', function ($scope, ImageService) {
+				$scope.deleteImage = function (event) {
 					ImageService.remove({id: $scope.image.id}, function (response) {
 						$scope.images.splice($scope.$index, 1);
-
 						$timeout(function () {
-							console.log('apply changes');
 							$scope.$apply($scope.images);
 						}, 1, false);
 
 					});
-				});
+				};
 
-				element.append(deleteButton);
-			}
+				$scope.updateCaption = function () {
+					console.log('Update caption', $scope.image.caption);
+					ImageService.save({id: $scope.image.id, caption: $scope.image.caption}, function (response) {
+
+					});
+				}
+			}]
 		}
 	}
 ]);
@@ -162,9 +150,7 @@ app.directive('uploadImage', [
 					console.log('upload, $scope: %o', $scope);
 
 					ImageService.upload({userId: $scope.user.id, payload: payload}, function (response) {
-						console.log('upload success, response: %o', response);
 						$scope.images.push(response);
-						//$scope.$apply();
 					});
 
 				});
@@ -191,8 +177,6 @@ app.directive('impressionCount', [
 					$scope.$watch(function () {
 						return $parse(expression)($scope);
 					}, function (isVisible) {
-						console.log($scope.sliderInderval, $scope.image, isVisible);
-
 						if (isVisible) {
 							ImageService.impression({id: $scope.image.id}, function (response) {
 								$scope.image.impression = response.impression;

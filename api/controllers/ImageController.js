@@ -11,15 +11,13 @@ var fs = require('fs');
 module.exports = {
 
 	incrementImpression: function (req, res, next) {
-		sails.log.debug('Impressions for :', req.params.id);
+		//sails.log.debug('Impressions for :', req.params.id);
 
 		Image.findOne(req.params.id, function (err, image) {
 			if (err) {
 				res.serverError(err);
 			}
-			console.log(image);
 			image.impression = image.impression + 1;
-			console.log(image);
 			image.save(function (err, updated) {
 				if (err) {
 					res.serverError(err);
@@ -42,14 +40,12 @@ module.exports = {
 			if (err) {
 				res.serverError(err);
 			}
-			;
+
 
 			var folder = sails.config.storage.byUser(image.owner);
 			var filePath = path.resolve(folder, image.fd);
 
 			image.stream = fs.createReadStream(filePath);
-
-			//res.file(image);
 			image.stream.pipe(res);
 		})
 	},

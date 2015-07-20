@@ -2,7 +2,7 @@ img.slide {
     width: 100%;
 }
 
-button.remove-button {
+.remove-button {
     color: red;
     opacity: 0;
     position: relative;
@@ -19,7 +19,7 @@ button.remove-button {
     margin: auto 5px;
 }
 
-li.image-list-item:hover button.remove-button {
+.image-list-item:hover .remove-button {
     opacity: .9;
 }
 

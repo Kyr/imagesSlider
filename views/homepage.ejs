@@ -2,9 +2,10 @@
 	<h1>Hello {{::userName}}</h1>
 </md-toolbar>
 <div flex layout="column">
-	<div flex layout="row">
+	<div flex layout="row" layout-align="center center">
 		<div flex="5">
-			<button ng-disabled="currentPage == 1" ng-click="currentPage = currentPage - 1"> <<</button>
+			<md-button class="md-icon-button" ng-disabled="currentPage == 1" ng-click="currentPage = currentPage - 1"> <<
+			</md-button>
 		</div>
 
 		<div flex="30" ng-repeat="image in images track by $index"
@@ -22,28 +23,28 @@
 
 
 		<div flex="5">
-			<button ng-disabled="images.length <= currentPage * image_amount" ng-click="currentPage = currentPage + 1"> >>
-			</button>
+			<md-button class="md-icon-button" ng-disabled="images.length <= currentPage * image_amount"
+			           ng-click="currentPage = currentPage +
+			1"> >>
+			</md-button>
 		</div>
 	</div>
 	<div flex layout="row">
-		<div flex="33" layout="column">
-			<div>
+		<div flex="35" layout="column" layout-align="center center">
+			<div flex>
 				<form name="uploader">
-					<button upload-image>
+					<md-button upload-image class="md-button md-primary">
 						Upload image
-					</button>
+					</md-button>
 				</form>
 			</div>
-			<div>
-				<ul class="image-lits">
-					<image-list-item class="image-list-item" ng-repeat="image in images" layout="row">
-						<span class="image-file-name">{{ ::image.fileName }}</span>
-					</image-list-item>
-				</ul>
-			</div>
+			<!--<div layout="column" style="padding-bottom: 32px;">-->
+			<image-list-item ng-repeat="image in images"></image-list-item>
+
+			<!--</ul>-->
+			<!--</div>-->
 		</div>
-		<div flex>
+		<div flex layout-align="center right">
 			<table class="">
 				<thead>
 				<tr>

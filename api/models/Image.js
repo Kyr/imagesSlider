@@ -40,17 +40,23 @@ module.exports = {
 		 * View count
 		 */
 		impression: {
-			type: 'integer'
+			type: 'integer',
+			defaultsTo: 0
 		},
 
 		/**
 		 * User rating (hearts/stars)
 		 */
 		rating: {
-			type: 'integer'
+			type: 'integer',
+			defaultsTo: 0
 		}
+	},
 
-
+	afterDestroy: function (removedRecord, cb) {
+		sails.log.debug('Remove image: ', removedRecord);
+		//TODO remove file from folder ???
+		cb();
 	}
 };
 

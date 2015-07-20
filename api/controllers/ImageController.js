@@ -9,6 +9,26 @@ var fs = require('fs');
  */
 
 module.exports = {
+
+	incrementImpression: function (req, res, next) {
+		sails.log.debug('Impressions for :', req.params.id);
+
+		Image.findOne(req.params.id, function (err, image) {
+			if (err) {
+				res.serverError(err);
+			}
+			console.log(image);
+			image.impression = image.impression + 1;
+			console.log(image);
+			image.save(function (err, updated) {
+				if (err) {
+					res.serverError(err);
+				}
+				res.ok(updated);
+			})
+		});
+
+	},
 	/**
 	 * Override GET image/:imageID
 	 * @param req

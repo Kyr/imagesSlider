@@ -10,7 +10,9 @@
 		<div flex="30" ng-repeat="image in images track by $index"
 		     ng-show="$index >= (currentPage-1) * image_amount && $index < currentPage * image_amount">
 
-			<img class="slide" ng-if="image" ng-src="{{ '/image/' + image.fileName }}" alt="{{ ::image.caption }}"/>
+			<img class="slide" ng-if="image" ng-src="{{ '/image/' + image.fileName }}" alt="{{ ::image.caption }}"
+			     impression-count
+			     visible="{{$index >= (currentPage-1) * image_amount && $index < currentPage * image_amount}}"/>
 		</div>
 
 		<div flex="30" ng-repeat="placeholder in placeholders track by $index"
@@ -35,14 +37,14 @@
 			</div>
 			<div>
 				<ul class="image-lits">
-					<image-list-item class="image-list-item" ng-repeat="image in images">
+					<image-list-item class="image-list-item" ng-repeat="image in images" layout="row">
 						<span class="image-file-name">{{ ::image.fileName }}</span>
 					</image-list-item>
 				</ul>
 			</div>
 		</div>
 		<div flex>
-			<table>
+			<table class="">
 				<thead>
 				<tr>
 					<th>Image ID</th>

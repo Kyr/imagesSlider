@@ -13,5 +13,28 @@ module.exports.bootstrap = function (cb) {
 
 	// It's very important to trigger this callback method when you are finished
 	// with the bootstrap!  (otherwise your server will never lift, since it's waiting on the bootstrap)
-	cb();
+
+	async.parallel([createDefaultUser], cb);
+
+	//cb();
 };
+
+function createDefaultUser(cb) {
+	User.count(function (err, cnt) {
+		if (err) {
+			cb(err);
+		}
+		if (cnt === 0) {
+			User.create({
+				userName: 'John Gold',
+				password: 'password',
+				authName: 'login'
+			}, function (err, result) {
+				sails.log.debug(err, result);
+				cb(err);
+			});
+		} else {
+			cb();
+		}
+	})
+}

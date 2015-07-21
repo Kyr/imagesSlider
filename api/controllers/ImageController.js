@@ -22,6 +22,8 @@ module.exports = {
 				if (err) {
 					res.serverError(err);
 				}
+
+				sails.sockets.blast('image:update:impression', {id: updated.id, impression: updated.impression});
 				res.ok(updated);
 			})
 		});

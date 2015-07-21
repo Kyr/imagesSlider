@@ -17,6 +17,15 @@ app.run([
 	}
 ]);
 
+app.run([
+	'$rootScope',
+	function ($rootScope) {
+		io.socket.on('image:update:impression', function (event) {
+			$rootScope.$broadcast('image:update:impression', event);
+		});
+	}
+]);
+
 /**
  * @ngdoc service
  * @name User
@@ -64,12 +73,39 @@ app.controller('appCtrl', [
 	'$scope', '$filter', '$timeout', 'IMAGE_AMOUNT', 'User', 'ImageService',
 	function ($scope, $filter, $timeout, IMAGE_AMOUNT, User, ImageService) {
 
-		User.login({login: 'login', password: 'password'}, function (result) {
-			$scope.images = result.images;
-			$scope.userName = result.userName;
-			$scope.userId = result.id;
-			$scope.user = result;
+		User.login({login: 'login', password: 'password'}, function (user) {
+			$scope.images = user.images;
+			$scope.userName = user.userName;
+			$scope.userId = user.id;
+			$scope.user = user;
+
+
+			io.socket.on('image', function (event) {
+				console.log('Socket event: %o', event);
+
+				for (var i = 0, image; image = $scope.images[i]; i++) {
+					if (event.id == image.id) {
+						angular.extend($scope.images[i], event.data);
+						break;
+					}
+				}
+			});
+
+			io.socket.get('/image', function (resData, jwres) {
+				console.log('Initial load image data via socket, just for test ans subscribe to Image events', resData);
+			});
+
+			$scope.$on('image:update:impression', function (event, updatedImage) {
+				console.log('event catch', arguments);
+				for (var i = 0, image; image = $scope.images[i]; i++) {
+					if (image.id == updatedImage.id) {
+						$scope.images[i].impression = updatedImage.impression;
+						break;
+					}
+				}
+			});
 		});
+
 
 		$scope.currentPage = 1;
 		$scope.image_amount = IMAGE_AMOUNT;

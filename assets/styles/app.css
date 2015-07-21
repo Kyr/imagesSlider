@@ -2,14 +2,27 @@ img.slide {
     width: 100%;
 }
 
+.image-overlay {
+    color: white;
+    background: black;
+    opacity: .2;
+    position: absolute;
+    right: 15px;
+    padding: 5px;
+}
+
+.image-overlay:hover {
+    opacity: .8;
+}
+
 .remove-button {
     color: red;
     opacity: 0;
     position: relative;
     line-height: 20px;
     text-align: center;
-    width: 30px;
-    height: 30px;
+    /*width: 30px;*/
+    /*height: 30px;*/
     cursor: pointer;
     border: none;
     border-radius: 50%;
@@ -27,10 +40,11 @@ table {
     border-collapse: collapse;
 }
 
-table, td {
-    border: solid 1px silver;
+table, th, td {
+    border: solid 1px black;
+    padding: .5em;
 }
 
 thead {
-    background: grey;
+    background: silver;
 }

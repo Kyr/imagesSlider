@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html ng-app="app">
+<head>
+	<title>Univision Image slider</title>
+
+	<!-- Viewport mobile tag for sensible mobile support -->
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<link rel="stylesheet" href="/styles/importer.css">
+	<link rel="stylesheet" href="/styles/app.css">
+</head>
+
+<body ng-controller="appCtrl">
+
+<nav class="navbar navbar-default">
+	<div class="container-fluid">
+		<div class="navbar-header">
+			<a class="navbar-brand" href="#">Hello {{:: userName}}</a>
+		</div>
+	</div>
+</nav>
+
+<section class="container" id="slider">
+	<div class="row">
+		<div class="col-xs-1">
+			<button class="btn btn-default" ng-click="currentPage = currentPage - 1" ng-disabled="currentPage == 1"><<
+			</button>
+		</div>
+
+		<div class="col-xs-10" ng-swipe-left="swipeLeft()" ng-swipe-right="swipeRight()">
+			<div class="col-xs-4" ng-repeat="image in images track by $index"
+					 ng-show="$index >= (currentPage-1) * image_amount && $index < currentPage * image_amount">
+
+				<div class="image-overlay">
+					<rating ng-model="image.rating" max="5" ng-click="updateRate(image)"></rating>
+				</div>
+
+				<img class="slide" ng-if="image" ng-src="{{ '/image/' + image.fileName }}" alt="{{ ::image.caption }}"
+						 impression-count
+						 visible="{{$index >= (currentPage-1) * image_amount && $index < currentPage * image_amount}}"/>
+
+			</div>
+
+			<div class="col-xs-4" ng-repeat="placeholder in placeholders track by $index"
+					 ng-if="images.length <= currentPage * image_amount">
+				<img class="img-responsive slide" src="images/placeholder.png" alt="Image placeholder">
+			</div>
+		</div>
+
+		<div class="col-xs-1">
+			<button class="btn btn-default" ng-disabled="images.length <= currentPage * image_amount"
+							ng-click="currentPage = currentPage +
+			1"> >>
+			</button>
+		</div>
+	</div>
+</section>
+
+<section class="container" style="margin-top: 1em;">
+	<div class="row">
+		<div class="col-xs-5">
+
+			<form name="uploader">
+				<button upload-image class="btn btn-primary">
+					Upload image
+				</button>
+			</form>
+
+			<image-list-item ng-repeat="image in images"></image-list-item>
+
+		</div>
+
+		<div class="col-xs-7">
+
+			<table class="">
+				<thead>
+				<tr>
+					<th>Image ID</th>
+					<th>Image URL</th>
+					<th>Impression count</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr ng-repeat="image in images">
+					<td>{{ ::image.id }}</td>
+					<td>{{ ::image.fileName }}</td>
+					<td>{{ image.impression }}</td>
+				</tr>
+				</tbody>
+			</table>
+
+		</div>
+	</div>
+</section>
+
+
+<script src="/js/dependencies/sails.io.js"></script>
+<script src="/js/vendor.js"></script>
+<script src="/js/app.js"></script>
+
+
+</body>
+</html>

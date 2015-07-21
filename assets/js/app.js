@@ -1,4 +1,4 @@
-var app = angular.module('app', ['ngResource', 'ngMaterial']);
+var app = angular.module('app', ['ngResource', 'ui.bootstrap', 'ngTouch']);
 
 /**
  * @ngdoc constant
@@ -6,13 +6,13 @@ var app = angular.module('app', ['ngResource', 'ngMaterial']);
  * @constant
  */
 app.constant('IMAGE_AMOUNT', 3);
-app.constant('SLIDER_INTERVAL', 5000);
+app.constant('SLIDER_INTERVAL', 10000);
 
 app.run([
 	'$rootScope', '$interval', 'SLIDER_INTERVAL',
 	function ($rootScope, $interval, SLIDER_INTERVAL) {
 		$rootScope.sliderInderval = $interval(function () {
-			$rootScope.$broadcast('slider:changePage');
+			$rootScope.$broadcast('slider:changePage', 1);
 		}, SLIDER_INTERVAL, 0, false);
 	}
 ]);
@@ -61,18 +61,41 @@ app.factory('ImageService', ['$resource', function ($resource) {
 }]);
 
 app.controller('appCtrl', [
-	'$scope', '$filter', '$timeout', 'IMAGE_AMOUNT', 'User',
-	function ($scope, $filter, $timeout, IMAGE_AMOUNT, User) {
+	'$scope', '$filter', '$timeout', 'IMAGE_AMOUNT', 'User', 'ImageService',
+	function ($scope, $filter, $timeout, IMAGE_AMOUNT, User, ImageService) {
+
+		User.login({login: 'login', password: 'password'}, function (result) {
+			$scope.images = result.images;
+			$scope.userName = result.userName;
+			$scope.userId = result.id;
+			$scope.user = result;
+		});
+
 		$scope.currentPage = 1;
 		$scope.image_amount = IMAGE_AMOUNT;
 
-		$scope.$on('slider:changePage', function () {
-			if ($scope.currentPage * IMAGE_AMOUNT >= $scope.images.length) {
-				$scope.currentPage = 1;
+		$scope.$on('slider:changePage', function (event, inc) {
+			inc = inc || 1;
+
+			if (inc == 1) {
+				if ($scope.currentPage == Math.ceil($scope.images.length / IMAGE_AMOUNT)) {
+					$scope.currentPage = 1;
+				} else {
+					$scope.currentPage++;
+				}
 			} else {
-				$scope.currentPage++;
+				if ($scope.currentPage == 1) {
+					$scope.currentPage = Math.ceil($scope.images.length / IMAGE_AMOUNT);
+				} else {
+					$scope.currentPage--;
+				}
 			}
-			$scope.$apply();
+
+			$timeout(function () {
+				$scope.$apply();
+			}, 1, true);
+
+
 		});
 
 		$scope.$watchCollection('images', function (images) {
@@ -86,15 +109,19 @@ app.controller('appCtrl', [
 			}
 		});
 
+		$scope.updateRate = function (image) {
+			ImageService.save({id: image.id, rating: image.rating}, function (response) {
 
+			});
+		};
 
-		User.login({login: 'login', password: 'password'}, function (result) {
-			$scope.images = result.images;
-			$scope.userName = result.userName;
-			$scope.userId = result.id;
-			$scope.user = result;
-		});
+		$scope.swipeLeft = function () {
+			$scope.$emit('slider:changePage')
+		};
 
+		$scope.swipeRight = function () {
+			$scope.$emit('slider:changePage', -1);
+		};
 
 	}
 ]);
@@ -108,6 +135,7 @@ app.directive('imageListItem', [
 			transclude: true,
 			replace: true,
 			controller: ['$scope', 'ImageService', function ($scope, ImageService) {
+
 				$scope.deleteImage = function (event) {
 					ImageService.remove({id: $scope.image.id}, function (response) {
 						$scope.images.splice($scope.$index, 1);
@@ -119,7 +147,6 @@ app.directive('imageListItem', [
 				};
 
 				$scope.updateCaption = function () {
-					console.log('Update caption', $scope.image.caption);
 					ImageService.save({id: $scope.image.id, caption: $scope.image.caption}, function (response) {
 
 					});

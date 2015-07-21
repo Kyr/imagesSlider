@@ -1,13 +1,11 @@
-<div class="md-whiteframe-z2 image-list-item" layout="column" layout-align="center center">
-	<div layout="row" flex layout-align="center center">
-		<div flex class="image-file-name">{{ ::image.fileName }}</div>
-		<md-button class="md-icon-button remove-button" ng-click="deleteImage()">X</md-button>
+<div class="panel panel-default image-list-item">
+	<div class="panel-heading">
+		<span class="image-file-name">{{ ::image.fileName }}</span>
+		<button type="button" class="close remove-button" ng-click="deleteImage()">×</button>
 	</div>
 
-	<md-input-container flex>
-		<label>Caption</label>
+	<div class="panel-body">
 		<textarea ng-model="image.caption" columns="1" md-maxlength="150" ng-change="updateCaption()"
-							ng-model-options="{debounce:1000}"></textarea>
-
-	</md-input-container>
+							ng-model-options="{debounce:1000}" placeholder="Caption"></textarea>
+	</div>
 </div>

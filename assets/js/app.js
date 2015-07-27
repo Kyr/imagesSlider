@@ -1,11 +1,19 @@
 var app = angular.module('app', ['ngResource', 'ui.bootstrap', 'ngTouch']);
 
 /**
+ * Describe how many images should present at same time
  * @ngdoc constant
  * @name IMAGE_AMOUNT
  * @constant
  */
 app.constant('IMAGE_AMOUNT', 3);
+
+/**
+ * Delay between auto slide image
+ * @ngdoc constant
+ * @name SLIDER_INTERVAL
+ * @constant
+ */
 app.constant('SLIDER_INTERVAL', 10000);
 
 app.run([
@@ -23,6 +31,40 @@ app.run([
 		io.socket.on('image:update:impression', function (event) {
 			$rootScope.$broadcast('image:update:impression', event);
 		});
+	}
+]);
+
+app.run([
+	'$rootScope', 'User',
+	function ($rootScope, User) {
+
+		User.login({login: 'login', password: 'password'}, function (user) {
+			$rootScope.images = user.images;
+			$rootScope.userName = user.userName;
+			$rootScope.userId = user.id;
+			$rootScope.user = user;
+
+			subscribeOnImageCollectionEventViaSocket();
+		});
+
+		function subscribeOnImageCollectionEventViaSocket() {
+			io.socket.on('image', function (event) {
+				console.log('Socket event: %o', event);
+
+				for (var i = 0, image; image = $scope.images[i]; i++) {
+					if (event.id == image.id) {
+						angular.extend($rootScope.images[i], event.data);
+						break;
+					}
+				}
+			});
+
+			// TODO How it works?
+			io.socket.get('/image', function (resData, jwres) {
+				console.log('Initial load image data via socket, just for test ans subscribe to Image events', resData);
+			});
+		}
+
 	}
 ]);
 
@@ -70,85 +112,20 @@ app.factory('ImageService', ['$resource', function ($resource) {
 }]);
 
 app.controller('appCtrl', [
-	'$scope', '$filter', '$timeout', 'IMAGE_AMOUNT', 'User', 'ImageService',
-	function ($scope, $filter, $timeout, IMAGE_AMOUNT, User, ImageService) {
-
-		User.login({login: 'login', password: 'password'}, function (user) {
-			$scope.images = user.images;
-			$scope.userName = user.userName;
-			$scope.userId = user.id;
-			$scope.user = user;
-
-
-			io.socket.on('image', function (event) {
-				console.log('Socket event: %o', event);
-
-				for (var i = 0, image; image = $scope.images[i]; i++) {
-					if (event.id == image.id) {
-						angular.extend($scope.images[i], event.data);
-						break;
-					}
-				}
-			});
-
-			io.socket.get('/image', function (resData, jwres) {
-				console.log('Initial load image data via socket, just for test ans subscribe to Image events', resData);
-			});
-
-			$scope.$on('image:update:impression', function (event, updatedImage) {
-				console.log('event catch', arguments);
-				for (var i = 0, image; image = $scope.images[i]; i++) {
-					if (image.id == updatedImage.id) {
-						$scope.images[i].impression = updatedImage.impression;
-						break;
-					}
-				}
-			});
-		});
-
+	'$scope', '$filter', '$timeout', 'IMAGE_AMOUNT', 'ImageService',
+	function ($scope, $filter, $timeout, IMAGE_AMOUNT, ImageService) {
 
 		$scope.currentPage = 1;
-		$scope.image_amount = IMAGE_AMOUNT;
+		$scope.image_amount = IMAGE_AMOUNT; // TODO Is it required???
 
-		$scope.$on('slider:changePage', function (event, inc) {
-			inc = inc || 1;
+		$scope.$on('image:update:impression', updateImageImpression);
 
-			if (inc == 1) {
-				if ($scope.currentPage == Math.ceil($scope.images.length / IMAGE_AMOUNT)) {
-					$scope.currentPage = 1;
-				} else {
-					$scope.currentPage++;
-				}
-			} else {
-				if ($scope.currentPage == 1) {
-					$scope.currentPage = Math.ceil($scope.images.length / IMAGE_AMOUNT);
-				} else {
-					$scope.currentPage--;
-				}
-			}
+		$scope.$on('slider:changePage', onChangePageNumber);
 
-			$timeout(function () {
-				$scope.$apply();
-			}, 1, true);
-
-
-		});
-
-		$scope.$watchCollection('images', function (images) {
-
-			if (!images || images.length == 0) {
-				$scope.placeholders = '0'.repeat(IMAGE_AMOUNT).split('');
-			} else if (images.length % IMAGE_AMOUNT == 0) {
-				$scope.placeholders = [];
-			} else {
-				$scope.placeholders = '0'.repeat(IMAGE_AMOUNT - images.length % IMAGE_AMOUNT).split('');
-			}
-		});
+		$scope.$watchCollection('images', changePlaceholdersAmount);
 
 		$scope.updateRate = function (image) {
-			ImageService.save({id: image.id, rating: image.rating}, function (response) {
-
-			});
+			ImageService.save({id: image.id, rating: image.rating});
 		};
 
 		$scope.swipeLeft = function () {
@@ -159,18 +136,68 @@ app.controller('appCtrl', [
 			$scope.$emit('slider:changePage', -1);
 		};
 
+		/**
+		 * TODO
+		 * @param images
+		 */
+		function changePlaceholdersAmount(images) {
+
+			//console.log('Change placeholders amount, image collection: %o ', images);
+
+			if (!images || images.length == 0) {
+				$scope.placeholders = '0'.repeat(IMAGE_AMOUNT).split('');
+			} else if (images.length % IMAGE_AMOUNT == 0) {
+				$scope.placeholders = [];
+			} else {
+				$scope.placeholders = '0'.repeat(IMAGE_AMOUNT - images.length % IMAGE_AMOUNT).split('');
+			}
+		}
+
+		function onChangePageNumber(event, inc) {
+			inc = inc || 1;
+
+			if (inc === 1) {
+				if ($scope.currentPage === Math.ceil($scope.images.length / IMAGE_AMOUNT)) {
+					$scope.currentPage = 1;
+				} else {
+					$scope.currentPage++;
+				}
+			} else {
+				if ($scope.currentPage === 1) {
+					$scope.currentPage = Math.ceil($scope.images.length / IMAGE_AMOUNT);
+				} else {
+					$scope.currentPage--;
+				}
+			}
+
+			$timeout(function () {
+				$scope.$apply();
+			}, 1, true);
+		}
+
+		function updateImageImpression(event, updatedImage) {
+			for (var i = 0, image; image = $scope.images[i]; i++) {
+				if (image.id == updatedImage.id) {
+					$scope.images[i].impression = updatedImage.impression;
+					break;
+				}
+			}
+		}
+
 	}
 ]);
 
+/**
+ * TODO Is it should be a directive? It's look like controller.
+ * @name imageListItem
+ */
 app.directive('imageListItem', [
-	'$timeout', 'ImageService',
-	function ($timeout, ImageService) {
+	function () {
 		return {
-			//template: '<li><md-whiteframe class="md-whiteframe-z2" layout layout-align="center center"><div ng-transclude="true"></div></md-whiteframe></li>',
 			templateUrl: 'partials/image-list-item.html',
 			transclude: true,
 			replace: true,
-			controller: ['$scope', 'ImageService', function ($scope, ImageService) {
+			controller: ['$scope', '$timeout', 'ImageService', function ($scope, $timeout, ImageService) {
 
 				$scope.deleteImage = function (event) {
 					ImageService.remove({id: $scope.image.id}, function (response) {
@@ -178,14 +205,11 @@ app.directive('imageListItem', [
 						$timeout(function () {
 							$scope.$apply($scope.images);
 						}, 1, false);
-
 					});
 				};
 
 				$scope.updateCaption = function () {
-					ImageService.save({id: $scope.image.id, caption: $scope.image.caption}, function (response) {
-
-					});
+					ImageService.save({id: $scope.image.id, caption: $scope.image.caption});
 				}
 			}]
 		}
@@ -209,8 +233,6 @@ app.directive('uploadImage', [
 
 					payload.append('image', file);
 					payload.append('user', $scope.userId);
-
-					console.log('upload, $scope: %o', $scope);
 
 					ImageService.upload({userId: $scope.user.id, payload: payload}, function (response) {
 						$scope.images.push(response);

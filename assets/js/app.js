@@ -129,7 +129,7 @@ app.controller('appCtrl', [
 		};
 
 		$scope.swipeLeft = function () {
-			$scope.$emit('slider:changePage')
+			$scope.$emit('slider:changePage');
 		};
 
 		$scope.swipeRight = function () {

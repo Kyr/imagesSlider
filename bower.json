@@ -15,5 +15,8 @@
   "name": "univisionImages",
   "version": "0.0.0",
   "author": "kir",
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "angular-mocks": "~1.4.3"
+  }
 }
